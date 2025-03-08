@@ -82,7 +82,7 @@ function DashboardForm({onSubmit}) {
   const getUnit = async () => {
     try {
       const {data} = await axios.get(
-        'http://203.132.146.94:12001/analytics/dashboard/',
+        'http://192.168.1.175:12001/analytics/dashboard/',
         {
           params: {call: 'get_unit'},
         },
@@ -101,7 +101,7 @@ function DashboardForm({onSubmit}) {
   const fetchProcessesData = async () => {
     try {
       const response = await axios.get(
-        'http://203.132.146.94:12001/rtqm/processes_master_view',
+        'http://192.168.1.175:12001/rtqm/processes_master_view',
         {
           params: { plan_process: 'plan_all_process' },
         }
@@ -124,7 +124,7 @@ function DashboardForm({onSubmit}) {
     const fetchTabLine = async () => {
     try {
       const response = await axios.get(
-        'http://203.132.146.94:12001/rtqm/qms_tab_login/',
+        'http://192.168.1.175:12001/rtqm/qms_tab_login/',
       );
       setLineData(
         response.data.line_master_data.map(line => ({
@@ -142,7 +142,7 @@ function DashboardForm({onSubmit}) {
   //   setSelectedProcess(selectedValue);
   //   try {
   //     const response = await axios.get(
-  //       `http://203.132.146.94:12001/rtqm/section_master_view/?id=${selectedValue}`,
+  //       `http://192.168.1.175:12001/rtqm/section_master_view/?id=${selectedValue}`,
   //     );
   //     setSectionData(
   //       response.data.sec_data.map(item => ({
@@ -160,7 +160,7 @@ function DashboardForm({onSubmit}) {
     setSelectedUnit(selectedValue);
     try {
       const response = await axios.get(
-        `http://203.132.146.94:12001/rtqm/finishing_planing2/?unit_id=${selectedValue}`,
+        `http://192.168.1.175:12001/rtqm/finishing_planing2/?unit_id=${selectedValue}`,
       );
       console.log('Floor Data:', response.data);
       setFloorOptions(
@@ -179,11 +179,11 @@ function DashboardForm({onSubmit}) {
     const selectedLinesString = selectedLine.join(',');
 
     if (selectedProcess === 7 || selectedProcess === 8) {
-      url = `http://203.132.146.94:12001/rtqm/cutting_dashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&unit_id=${selectedUnit}&floor_id=${selectedFloor}`;
+      url = `http://192.168.1.175:12001/rtqm/cutting_dashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&unit_id=${selectedUnit}&floor_id=${selectedFloor}`;
     } else if (selectedProcess === 5) {
-      url = `http://203.132.146.94:11005/tv/dashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=7&unit_id=${selectedUnit}`;
+      url = `http://192.168.1.175:11005/tv/dashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=7&unit_id=${selectedUnit}`;
     } else if (selectedProcess === 6) {
-      url = `http://203.132.146.94:11005/tv/ftdashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
+      url = `http://192.168.1.175:11005/tv/ftdashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
     } 
   
     console.log('Generated URL:', url);
