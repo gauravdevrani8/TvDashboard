@@ -1,67 +1,49 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Modal,
   ActivityIndicator,
-  Animated,
-  Easing,
-} from 'react-native';
-import NetInfo from '@react-native-community/netinfo';
+} from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 
 const NetworkStatus = () => {
   const [isConnected, setIsConnected] = useState(true);
   const [isSlow, setIsSlow] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
+
+  const checkLocalNetwork = async () => {
+    const state = await NetInfo.fetch();
+
+    if (state.type === "wifi" || state.type === "ethernet") {
+      console.log("Connected to local network!");
+    } else {
+      console.log("Not connected to local network!");
+    }
+  };
 
   useEffect(() => {
+    checkLocalNetwork();
+
     const unsubscribe = NetInfo.addEventListener((state) => {
-      if (!state.isConnected || state.isInternetReachable === false) {
-        setIsConnected(false);
-        setIsSlow(false);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.exp),
-        }).start();
-      } else if (state.isConnected && state.details?.downlink < 1) {
-        setIsConnected(true);
-        setIsSlow(true);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.out(Easing.exp),
-        }).start();
-      } else {
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 500,
-          useNativeDriver: true,
-          easing: Easing.in(Easing.exp),
-        }).start(() => {
-          setIsConnected(true);
-          setIsSlow(false);
-        });
-      }
+      setIsConnected(state.isConnected);
+      setIsSlow(state.details?.downlink && state.details.downlink < 1);
     });
 
     return () => unsubscribe();
-  }, [fadeAnim]);
-
-  if (isConnected && !isSlow) return null;
+  }, []);
 
   return (
-    <Modal transparent visible animationType="fade">
+    <Modal transparent visible={!isConnected} animationType="fade">
       <View style={styles.modalContainer}>
-        <Animated.View style={[styles.notificationBox, { opacity: fadeAnim }]}>  
+        <View style={styles.notificationBox}>
           <ActivityIndicator size="large" color="#ffffff" style={styles.loader} />
           <Text style={styles.offlineText}>
-            {isSlow ? 'Your network is slow. Some features may take longer to load.' : 'You are offline. Please check your internet connection.'}
+            {isSlow
+              ? "Your network is slow. Some features may take longer to load."
+              : "You are offline. Please check your internet connection."}
           </Text>
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
@@ -70,21 +52,21 @@ const NetworkStatus = () => {
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
   },
   notificationBox: {
-    backgroundColor: 'red',
+    backgroundColor: "red",
     padding: 20,
     borderRadius: 6,
-    alignItems: 'center',
-    width: '30%',
+    alignItems: "center",
+    width: "80%",
   },
   offlineText: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 10,
   },
   loader: {

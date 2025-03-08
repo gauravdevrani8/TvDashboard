@@ -82,7 +82,7 @@ function DashboardForm({onSubmit}) {
   const getUnit = async () => {
     try {
       const {data} = await axios.get(
-        'https://isapp.globalfashionindia.com:12001/analytics/dashboard/',
+        'http://203.132.146.94:12001/analytics/dashboard/',
         {
           params: {call: 'get_unit'},
         },
@@ -98,33 +98,33 @@ function DashboardForm({onSubmit}) {
     }
   };
 
- const fetchProcessesData = async () => {
-  try {
-    const response = await axios.get(
-      'https://isapp.globalfashionindia.com:12001/rtqm/processes_master_view',
-      {
-        params: { plan_process: 'plan_all_process' },
-      }
-    );
-    console.log('Processes Data:', response.data);
-
-    setProcessData([
-      ...response.data.pro_data.map(item => ({
-        key: item.id,
-        value: item.name,
-      })),
-      { key: 20,name: 'Finishing-Two', value: 'Finishing 2' }     ]);
-      console.log('newProcesses Data:', response.data);
-      console.log(selectedProcess);
-  } catch (err) {
-    console.error('Error fetching processes data:', err);
-  }
-};
-
-  const fetchTabLine = async () => {
+  const fetchProcessesData = async () => {
     try {
       const response = await axios.get(
-        'https://isapp.globalfashionindia.com:12001/rtqm/qms_tab_login/',
+        'http://203.132.146.94:12001/rtqm/processes_master_view',
+        {
+          params: { plan_process: 'plan_all_process' },
+        }
+      );
+      console.log('Processes Data:', response.data);
+  
+      setProcessData(
+        response.data.pro_data.map(item => ({
+          key: item.id,
+          value: item.name,
+        }))
+      );
+  
+      console.log('newProcesses Data:', response.data);
+      console.log(selectedProcess);
+    } catch (err) {
+      console.error('Error fetching processes data:', err);
+    }
+  };
+    const fetchTabLine = async () => {
+    try {
+      const response = await axios.get(
+        'http://203.132.146.94:12001/rtqm/qms_tab_login/',
       );
       setLineData(
         response.data.line_master_data.map(line => ({
@@ -142,7 +142,7 @@ function DashboardForm({onSubmit}) {
   //   setSelectedProcess(selectedValue);
   //   try {
   //     const response = await axios.get(
-  //       `https://isapp.globalfashionindia.com:12001/rtqm/section_master_view/?id=${selectedValue}`,
+  //       `http://203.132.146.94:12001/rtqm/section_master_view/?id=${selectedValue}`,
   //     );
   //     setSectionData(
   //       response.data.sec_data.map(item => ({
@@ -160,7 +160,7 @@ function DashboardForm({onSubmit}) {
     setSelectedUnit(selectedValue);
     try {
       const response = await axios.get(
-        `https://isapp.globalfashionindia.com:12001/rtqm/finishing_planing2/?unit_id=${selectedValue}`,
+        `http://203.132.146.94:12001/rtqm/finishing_planing2/?unit_id=${selectedValue}`,
       );
       console.log('Floor Data:', response.data);
       setFloorOptions(
@@ -178,14 +178,12 @@ function DashboardForm({onSubmit}) {
     let url = '';
     const selectedLinesString = selectedLine.join(',');
 
-    if (selectedProcess === 3 || selectedProcess === 10) {
-      url = `https://isapp.globalfashionindia.com:12001/tv/cutting_dashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&unit_id=${selectedUnit}&floor_id=${selectedFloor}`;
-    } else if (selectedProcess === 1) {
-      url = `https://isapp.globalfashionindia.com:12001/tv/sewing_tv_one/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=8&unit_id=${selectedUnit}`;
-    } else if (selectedProcess === 2) {
-      url = `https://isapp.globalfashionindia.com:12001/tv/ftdashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=10&unit_id=${selectedUnit}`;
-    } else if (selectedProcess === 20) {
-      url = `https://isapp.globalfashionindia.com:12001/tv/ftdashboard2/?line_id=${selectedLinesString}&process_id=2&section_id=10&unit_id=${selectedUnit}`;
+    if (selectedProcess === 7 || selectedProcess === 8) {
+      url = `http://203.132.146.94:12001/rtqm/cutting_dashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&unit_id=${selectedUnit}&floor_id=${selectedFloor}`;
+    } else if (selectedProcess === 5) {
+      url = `http://203.132.146.94:11005/tv/dashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=7&unit_id=${selectedUnit}`;
+    } else if (selectedProcess === 6) {
+      url = `http://203.132.146.94:11005/tv/ftdashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
     } 
   
     console.log('Generated URL:', url);
@@ -213,7 +211,7 @@ function DashboardForm({onSubmit}) {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../assets/logo/logo.png')}
+        source={require('../assets/logo/finelines.png')}
         style={styles.logoAbsolute}
       />
 
@@ -356,11 +354,11 @@ const styles = StyleSheet.create({
   },
   logoAbsolute: {
     position: 'absolute',
-    top: 30,
-    left: 30,
-    width: 40,
+    top: 10,
+    left: 25,
+    width: 55,
     padding: 20,
-    height: 40,
+    height: 55,
     resizeMode: 'contain',
   },
   header: {
@@ -390,7 +388,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridItem: {
-    width: width > 600 ? "20%" : "100%", // Adjust for tablets vs phones
+    width: width > 600 ? "20%" : "100%",
     marginBottom: 15,
   },
   label: {
