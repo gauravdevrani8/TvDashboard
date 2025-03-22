@@ -1,12 +1,14 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect,useRef} from 'react';
 import {
   View,
   Text,
+  Alert,
   StyleSheet,
   Button,
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  BackHandler
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -17,7 +19,9 @@ import {
   SelectList,
 } from 'react-native-dropdown-select-list';
 import { Dimensions } from "react-native";
+import NetworkStatusIndicator from './NetworkSpeedPopup';
 const { width } = Dimensions.get("window");
+import NetInfo from '@react-native-community/netinfo';
 
 
 const BackIcon = () => (
@@ -26,38 +30,63 @@ const BackIcon = () => (
   </Svg>
 );
 
-function WebViewScreen({url, onBack}) {
-  const [loading, setLoading] = useState(true);
+function WebViewScreen({ url, onBack }) {
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(true);
+  const webViewRef = useRef(null);
+
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      if (state.isConnected && !isConnected) {
+        webViewRef.current?.reload(); // Reload when back online
+      }
+      setIsConnected(state.isConnected);
+    });
+
+    return () => unsubscribe();
+  }, [isConnected]);
+
+  // Prevent navigation when offline
+  const handleNavigation = (event) => {
+    if (!isConnected) return false;
+    return true;
+  };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       {/* Back Button */}
       <View style={styles.absoluteButtonContainer}>
         <TouchableOpacity onPress={onBack} style={styles.absoluteButton}>
           <BackIcon />
         </TouchableOpacity>
       </View>
-
-      {/* WebView with Loading Indicator */}
+<NetworkStatusIndicator/>
+      {/* WebView */}
       <WebView
-        source={{uri: url}}
-        style={{flex: 1}}
+        ref={webViewRef}
+        source={{ uri: url }}
+        style={{ flex: 1 }}
         cacheEnabled={true}
         cacheMode="LOAD_CACHE_ELSE_NETWORK"
-        startInLoadingState={true}
-        onLoadStart={() => setLoading(true)}
-        onLoadEnd={() => setLoading(false)}
+        onShouldStartLoadWithRequest={handleNavigation}
+        onLoadEnd={() => setInitialLoading(false)}
       />
 
-      {/* Loading Spinner */}
-      {loading && (
+      {/* Show Loading Screen ONLY for Initial Load */}
+      {initialLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#007BFF" />
         </View>
       )}
+
+      {/* Invisible Overlay to Prevent Interaction When Offline */}
+      {!isConnected && <View style={styles.freezeOverlay} />}
     </View>
   );
 }
+
+
+
 
 function DashboardForm({onSubmit}) {
   const [unitOptions, setUnitOptions] = useState([]);
@@ -71,7 +100,9 @@ function DashboardForm({onSubmit}) {
   const [floorOptions, setFloorOptions] = useState([]);
   const [selectedFloor, setSelectedFloor] = useState(null);
 
-
+    const handleExit = () => {
+      BackHandler.exitApp();
+    };  
   useEffect(() => {
     getUnit();
     fetchProcessesData();
@@ -108,12 +139,12 @@ function DashboardForm({onSubmit}) {
       );
       console.log('Processes Data:', response.data);
   
-      setProcessData(
-        response.data.pro_data.map(item => ({
+      setProcessData([
+        ...response.data.pro_data.map(item => ({
           key: item.id,
           value: item.name,
-        }))
-      );
+        })),
+        { key: 20,name: 'Finishing-Two', value: 'Finishing 2' }     ]);
   
       console.log('newProcesses Data:', response.data);
       console.log(selectedProcess);
@@ -181,10 +212,12 @@ function DashboardForm({onSubmit}) {
     if (selectedProcess === 7 || selectedProcess === 8) {
       url = `http://192.168.1.175:12001/rtqm/cutting_dashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&unit_id=${selectedUnit}&floor_id=${selectedFloor}`;
     } else if (selectedProcess === 5) {
-      url = `http://192.168.1.175:11005/tv/dashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=7&unit_id=${selectedUnit}`;
+      url = `http://192.168.1.175:12001/masters/sewing_tv_one/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=7&unit_id=${selectedUnit}`;
     } else if (selectedProcess === 6) {
-      url = `http://192.168.1.175:11005/tv/ftdashboard/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
-    } 
+      url = `http://192.168.1.175:12001/masters/ftdashboard1/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
+    } else if (selectedProcess === 20) {
+      url = `http://192.168.1.175:12001/masters/ftdashboard2/?line_id=${selectedLinesString}&process_id=${selectedProcess}&section_id=9&unit_id=${selectedUnit}`;
+    }
   
     console.log('Generated URL:', url);
 
@@ -210,11 +243,17 @@ function DashboardForm({onSubmit}) {
 
   return (
     <View style={styles.container}>
+          <TouchableOpacity style={styles.backButton} onPress={handleExit}>
+      <Svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <Path d="M19 12H5" />
+        <Path d="M12 19l-7-7 7-7" />
+      </Svg>
+    </TouchableOpacity>
+
       <Image
         source={require('../assets/logo/finelines.png')}
         style={styles.logoAbsolute}
       />
-
       <Text style={styles.header}>TV Dashboards</Text>
 
       <View style={styles.gridContainer}>
@@ -355,7 +394,7 @@ const styles = StyleSheet.create({
   logoAbsolute: {
     position: 'absolute',
     top: 10,
-    left: 25,
+    left: 30,
     width: 55,
     padding: 20,
     height: 55,
@@ -442,4 +481,14 @@ const styles = StyleSheet.create({
 
 
   },
+  backButton: {
+    position: "absolute",
+    top: 7,
+    left: 7,
+    backgroundColor: "black",
+    padding: 2,
+    borderRadius: 50,
+    zIndex: 1000,
+  },
+
 });

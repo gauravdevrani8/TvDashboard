@@ -6,8 +6,9 @@ import NetworkStatus from './src/Components/NetworkStatus';
 export default function App() {
   return (
     <View style={styles.container}>
-      <NetworkStatus />
+      <NetworkStatus>
       <DashboardForm />
+      </NetworkStatus>
     </View>
   );
 }
